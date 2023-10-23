@@ -1,8 +1,11 @@
 from googleapiclient.discovery import build
 import pandas as pd
 import numpy as np
+import os
+from dotenv import load_dotenv
 
-api_key = 'AIzaSyDScZcJdUfVC3kN3dSVsQkHBvm76FGGwFo'
+load_dotenv()
+api_key = os.getenv('YT_API_KEY')
 youtube = build('youtube', 'v3', developerKey=api_key)
 
 
