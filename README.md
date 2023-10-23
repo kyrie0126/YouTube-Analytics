@@ -1,4 +1,4 @@
-# YouTube Content Straegy Analyzer
+# YouTube Content Strategy Analyzer
 
 ### Overview
 The YouTube Content Strategy Analyzer is a powerful tool designed to assist content creators in optimizing their video posting schedule and content presentation. By leveraging YouTube Data API v3, Selenium, and Natural Language Processing (NLP) techniques, this tool provides insightful data-driven recommendations to enhance a channel's performance.
