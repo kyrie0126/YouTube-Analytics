@@ -1,4 +1,4 @@
-# YouTube Content Strategy Analyzer
+# YouTube Strategy Optimizer
 
 ![Title Image](https://static.wixstatic.com/media/a35af6_e7f71b48594040b197e0b62448aac538~mv2.png/v1/fill/w_640,h_366,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/a35af6_e7f71b48594040b197e0b62448aac538~mv2.png)
 
