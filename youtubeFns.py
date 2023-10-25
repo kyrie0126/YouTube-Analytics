@@ -3,6 +3,9 @@ import pandas as pd
 import numpy as np
 import os
 from dotenv import load_dotenv
+from sklearn.neighbors import LocalOutlierFactor
+import plotly.express as px
+import plotly.graph_objects as go
 
 load_dotenv()
 api_key = os.getenv('YT_API_KEY')
@@ -125,14 +128,83 @@ def retrieve_channel_videos(id):
 
     # clean ISO encoded duration column
     df['duration'] = pd.to_timedelta(df['duration'])
-    df['duration_min'] = df['duration'].dt.components.minutes + df['duration'].dt.components.seconds / 60
+    df['duration_min'] = round(df['duration'].dt.components.minutes + df['duration'].dt.components.seconds / 60, 2)
     
     # indicate full video or YT short
     df['video_type'] = np.where(df['duration_min'] > 1, 'standard', 'short')
-
+    
+    # convert to numeric
+    df['views'] = df['views'].astype('int')
+    df['likes'] = df['likes'].astype('int')
+    df['comments'] = df['comments'].astype('int')
 
     return df
     
     
+def calculate_lof(df, variable: str):
+    """
+    Returns dataframe with Local Outlier Factor (LOF) algorithm applied to variable of choice
+    
+    Params:\n
+    df: (pd.DataFrame)\n
+    variable: (str) variable of interest
+    """
+    anomaly_inputs = [variable]
+        
+    # LOF for videos
+    df_video = df[df['video_type']=='standard'].copy()
+    model_LOF = LocalOutlierFactor()
+    df_video['indicator'] = model_LOF.fit_predict(df_video[anomaly_inputs])
+    df_video['performance'] = np.where(df_video['indicator']==1, 'Normal', 'Hit')
+    
+    # LOF for shorts
+    df_short = df[df['video_type']=='short'].copy()
+    model_LOF = LocalOutlierFactor()
+    df_short['indicator'] = model_LOF.fit_predict(df_short[anomaly_inputs])
+    df_short['performance'] = np.where(df_short['indicator']==1, 'Normal', 'Hit')
     
     
+    
+    return pd.concat([df_video, df_short], axis=0)
+    
+    
+def visualize_performance(CHANNEL_USERNAME, df, variable: str, vid_type: str):
+    
+    if vid_type=='standard':
+        graph_title = f"{CHANNEL_USERNAME}'s Youtube Video Performance ({variable})"
+    else:
+        graph_title = f"{CHANNEL_USERNAME}'s Youtube Shorts Performance ({variable})"
+    
+    df_full = df[df['video_type']==vid_type].copy()
+    
+    df_norm = df_full[df_full['performance']=='Normal'].copy()
+    df_norm['normal_rolling_average'] = df_norm[variable].rolling(12).mean()
+    
+    color_map = {
+        'Normal':'#497174',
+        'Hit':'#EB6440'
+    }
+    fig1 = px.scatter(df_full,
+                    x='publishTime',
+                    y=variable,
+                    hover_data=['title', 'duration_min'],
+                    color='performance',
+                    color_discrete_map=color_map)
+    fig2 = px.line(df_norm, x='publishTime',y='normal_rolling_average')
+    fig2.update_traces(line_color='#497174')
+
+    fig3 = go.Figure(data = fig1.data + fig2.data)
+    fig3.update_layout(title_text=graph_title,
+                    title_x=0.5,
+                    height=600,
+                    plot_bgcolor='#D6E4E5')
+    fig3.update_layout(
+        legend=dict(
+            title=dict(text='Performance'),
+            itemsizing='constant'
+        ),
+        legend_traceorder="reversed"
+    )
+    fig3.update_xaxes(title_text='Date Posted')
+    fig3.update_yaxes(title_text=variable)
+    fig3.show()
