@@ -54,3 +54,47 @@ def scatter_performance(username, df, variable: str, vid_type: str):
     fig3.update_xaxes(title_text='Date Posted')
     fig3.update_yaxes(title_text=variable)
     fig3.show()
+    
+    
+def bar_post_views_dow_range(df, start_date: str, end_date: str, title=None):
+    """
+    Visual displaying count of videos published per day of week and average views per day of week. Can change time period.
+    
+    Args:
+        df (pd.DataFrame): dataframe resulting from `retrieve_channel_videos` or `calculate_lof` function
+        start_date (str): start date in format 'YYYY-MM-DD' such as '2022-12-25' for Christmas
+        end_date (str): start date in format 'YYYY-MM-DD' such as '2022-12-25' for Christmas
+    
+    Returns:
+        plotly image of line graph overlayed on bar graph
+    """
+    if title:
+        plot_title = title
+    else:
+        plot_title = f'Posting Frequency and Average Views by Day of Week ({start_date}) to ({end_date})'
+    
+    days_of_week = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    
+    df_range = df[(df['publishTime'] >= start_date) & (df['publishTime'] <= end_date)]
+
+    fig = go.Figure()
+
+    fig1 = px.histogram(df_range, x='weekday_name', category_orders={'weekday_name': days_of_week})
+
+    fig2 = px.line(df_range.groupby('weekday_name')['views'].mean(), markers=True, category_orders={'weekday_name': days_of_week})
+    fig2.update_traces(line_color='red')
+
+    for trace in fig1.data:
+        fig.add_trace(trace)
+        
+    for trace in fig2.data:
+        fig.add_trace(trace.update(yaxis='y2'))
+        
+    fig.update_layout(title_text=plot_title,
+                    xaxis_title='Day of Week',
+                    yaxis_title='Posts',
+                    yaxis2=dict(anchor='x', overlaying='y', side='right', title='views'),
+                    xaxis=dict(categoryorder='array', categoryarray=days_of_week)
+                    )
+
+    fig.show()
