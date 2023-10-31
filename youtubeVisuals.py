@@ -97,4 +97,5 @@ def bar_post_views_dow_range(df, start_date: str, end_date: str, title=None):
                     xaxis=dict(categoryorder='array', categoryarray=days_of_week)
                     )
 
-    fig.show()
+    return fig
+    

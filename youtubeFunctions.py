@@ -22,11 +22,13 @@ def calculate_lof(df, variable: str):
     model_LOF = LocalOutlierFactor()
     df_video['indicator'] = model_LOF.fit_predict(df_video[anomaly_inputs])
     df_video['performance'] = np.where(df_video['indicator']==1, 'Normal', 'Hit')
-    
-    # LOF for shorts
-    df_short = df[df['video_type']=='short'].copy()
-    model_LOF = LocalOutlierFactor()
-    df_short['indicator'] = model_LOF.fit_predict(df_short[anomaly_inputs])
-    df_short['performance'] = np.where(df_short['indicator']==1, 'Normal', 'Hit')
-    
+    try:
+        # LOF for shorts
+        df_short = df[df['video_type']=='short'].copy()
+        model_LOF = LocalOutlierFactor()
+        df_short['indicator'] = model_LOF.fit_predict(df_short[anomaly_inputs])
+        df_short['performance'] = np.where(df_short['indicator']==1, 'Normal', 'Hit')
+    except ValueError:
+        return df_video    
+
     return pd.concat([df_video, df_short], axis=0)
